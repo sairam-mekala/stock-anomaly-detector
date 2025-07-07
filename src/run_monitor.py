@@ -1,6 +1,6 @@
 import time
 from datetime import datetime, timedelta
-
+from alerter import EmailAlerter
 from data_client import DataClient
 from detector import AnomalyDetector
 
@@ -8,13 +8,14 @@ def main():
     # 1) Configuration
     SYMBOLS = ["AAPL", "TSLA", "INFY"]
     WINDOW = 20            # number of bars for rolling stats
-    SIGMA_THRESH = 2.0     # how many std devs to flag
+    SIGMA_THRESH = 0.01     # how many std devs to flag
     INTERVAL = "5m"        # polling interval
     FETCH_PERIOD = "1d"    # how much history to fetch each poll
 
     client = DataClient()
     detector = AnomalyDetector(window=WINDOW, sigma_thresh=SIGMA_THRESH)
-
+    alerter  = EmailAlerter()
+    
     print(f"[{datetime.now()}] Starting real‑time monitor for {SYMBOLS}.")
     print("Will poll every", INTERVAL, "and flag deviations >", SIGMA_THRESH, "σ.\n")
 
@@ -40,10 +41,18 @@ def main():
 
                 # 5) Print new anomaly events
                 if events:
+                    subject = f"[ALERT] {sym} anomalies detected"
+                    lines = []
                     print(f"  ➤ {sym} anomalies:")
                     for e in events:
-                        print(f"      • {e.timestamp.strftime('%Y-%m-%d %H:%M')} "
-                              f"price={e.price:.2f}, dev={e.deviation:.2f}σ")
+                        line = (f"{e.timestamp.strftime('%Y-%m-%d %H:%M')} "
+                                f"price={e.price:.2f}, dev={e.deviation:.2f}σ")
+                        lines.append(line)
+                        print(f"      • {line}")
+                    # send email
+                    body = "\n".join(lines)
+                    alerter.send(subject, body)
+                    print(f"  ✉️  Email alert sent for {sym}")
                 else:
                     print(f"  • {sym}: no anomalies.")
 
