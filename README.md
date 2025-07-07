@@ -94,8 +94,19 @@ Modify the following settings in `src/run_monitor.py`:
 
 ---
 
+## Two Detection Approaches
+
+This project supports two independent anomaly-detection strategies:
+
+1. **Statistical Approach (Rolling Mean + Std Dev)**  
+   Flags a price as an anomaly when the absolute deviation from the rolling mean exceeds the configured sigma threshold.
+
+2. **LSTM Autoencoder (AI/ML Approach)**  
+   Uses a trained LSTM autoencoder to learn normal price sequence patterns and flags anomalies based on high reconstruction error. Enable this mode by setting `USE_LSTM = True` in `src/run_monitor.py`.
+
+---
+
 ## Customization
 
 - To add other alert channels, extend or modify the `alerter.py` module.
 - To adjust data frequency or source, update `data_client.py` accordingly.
-  
