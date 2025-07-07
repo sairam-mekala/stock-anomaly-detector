@@ -3,17 +3,23 @@ from datetime import datetime, timedelta
 from alerter import EmailAlerter
 from data_client import DataClient
 from detector import AnomalyDetector
+from lstm_detector import LSTMDetector
 
 def main():
     # 1) Configuration
     SYMBOLS = ["AAPL", "TSLA", "INFY"]
     WINDOW = 20            # number of bars for rolling stats
-    SIGMA_THRESH = 0.01     # how many std devs to flag
+    SIGMA_THRESH = 2.0     # how many std devs to flag
     INTERVAL = "5m"        # polling interval
     FETCH_PERIOD = "1d"    # how much history to fetch each poll
+    USE_LSTM = True   # set True to use LSTM-based detection
 
     client = DataClient()
-    detector = AnomalyDetector(window=WINDOW, sigma_thresh=SIGMA_THRESH)
+    if USE_LSTM:
+        detector = LSTMDetector()
+    else:
+        detector = AnomalyDetector(window=WINDOW, sigma_thresh=SIGMA_THRESH)
+
     alerter  = EmailAlerter()
     
     print(f"[{datetime.now()}] Starting real‑time monitor for {SYMBOLS}.")
